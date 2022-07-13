@@ -212,7 +212,7 @@ def water_flooding():
     Wid = np.zeros(len(Sw))
     Npd = np.zeros(len(Sw))
     Wid_BT = 1.0/dfw_dSw[min_index]
-    st.write("### Injected Pore Volumes at Breakthrough :",Wid_BT)
+    
     #st.write(Wid_BT)
     for i in range(len(Sw)):
         if sat[i]<=SwBT:
@@ -229,7 +229,7 @@ def water_flooding():
     fig_rec.update_xaxes(title_text="<b>Injected Pore Volume</b>",range=[0.0,2.0],nticks=20)
     fig_rec.update_layout(title={'text':"<b>Recovery Plot<b>",'x':0.48,'y':0.85})
     st.plotly_chart(fig_rec, use_container_width=True)
-    
+    st.write("### Injected Pore Volumes at Breakthrough :",Wid_BT)
     '''
     fig = plt.figure(figsize=(8,8))
     ax = fig.add_subplot(111)
