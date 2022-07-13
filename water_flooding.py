@@ -49,7 +49,7 @@ def water_flooding():
     with col1:
         st.write("")
     with col2:
-        st.image("coreys formula.jpg")  
+        st.image("images/coreys formula.jpg")  
     with col3:
         st.write("")  
     st.write("Relative permeability is the ratio of effective permeability of a particular fluid at a particular saturation to absolute permeability of that fluid at total saturation. If a single fluid is present in a rock, its relative permeability is 1.0. Calculation of relative permeability is of vital significance as it allows comparison of the different abilities of fluids to flow in the presence of each other, since the presence of more than one fluid generally inhibits flow. Accurate predictions of three-phase oil relative permeabilities are required for a variety of petroleum processes and ground water pollution problems. Simultaneous flow of water-gas-oil mixtures are encountered in petroleum reservoirs producing under primary, secondary, and tertiary processes. Enhanced oil recovery methods such as thermal recovery, carbon dioxide immiscible displacement, or any gas injection process generates simultaneous flow of three phases.")
@@ -99,7 +99,7 @@ def water_flooding():
     with col1:
         st.write("")
     with col2:
-        st.image("fractional_3.jpg")    
+        st.image("images/fractional_3.jpg")    
     with col3:
         st.write("")   
     st.write("First term is the advection term which basically symbolizes the flow rate that is going with the flow. The second term is the flow rate of water due to capillary pressure effects and third one is due to gravity or buoyancy effects.") 
@@ -108,7 +108,7 @@ def water_flooding():
     with col1:
         st.write("")
     with col2:
-        st.image("fractional.jpg")    
+        st.image("images/fractional.jpg")    
     with col3:
         st.write("")  
     st.write("Now, fractional flow of water is defined as the ratio of flow rate of water with respect to the total flow rate. Therefore,")
@@ -116,7 +116,7 @@ def water_flooding():
     with col1:
         st.write("")
     with col2:
-        st.image("fractional_2.jpg")    
+        st.image("images/fractional_2.jpg")    
     with col3:
         st.write("")  
     fig_fw = make_subplots()
@@ -145,7 +145,7 @@ def water_flooding():
     st.write("• Both oil and water are immiscible with one another")
     st.write("• Capillary and gravity pressure effects are neglected")
     st.write("Mathematically, using Buckley Leverett theory, we calculate the velocity of the constant saturation front by applying the multiphase conservation and fractional flow theory.")
-    st.image("buckley.png")
+    st.image("images/buckley.png")
     t_BT = (len(Sw)-min_index)
     st.write('### Breakthrough Time :',t_BT,"days")
     st.write('### Breakthrough Saturation :',SwBT)
@@ -191,21 +191,21 @@ def water_flooding():
     with col1:
         st.write("")
     with col2:
-        st.image("case1.jpg")    
+        st.image("images/case1.jpg")    
     with col3:
         st.write("")
     st.write("### Case II: After Breakthrough")
     st.write("After the breakthrough, the water saturation and fractional flow of water in the production well will slowly increase. But the total reservoir length remains same. Therefore, we take the average of the total water saturation present before the producing well (𝑆¯𝑤). Now, the pore volume of oil produced equals,")
-    st.image("case2_0.jpg")
+    st.image("images/case2_0.jpg")
     st.write("Where,")
-    st.image("case2_1.jpg") 
+    st.image("images/case2_1.jpg") 
     #st.image("case2_2.jpg") 
     st.write("Substituting this value of average water saturation to get the final number of pore volumes of oil produced.")
     col1, col2, col3 = st.beta_columns([1,3,1])
     with col1:
         st.write("")
     with col2:
-        st.image("case2_2.jpg")    
+        st.image("images/case2_2.jpg")    
     with col3:
         st.write("")
     
