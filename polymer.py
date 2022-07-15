@@ -1,6 +1,4 @@
-
 from math import ceil
-from numpy.core.defchararray import count
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import numpy as np
@@ -9,9 +7,9 @@ import warnings
 warnings.filterwarnings("ignore")
 import pandas as pd
 
-def water_flooding():
-    
-    st.header("Water Flooding")
+
+def polymer():
+    st.header("Polymer Flooding")
     st.write("Please enter the values of the following parameters :")
     
     # Input Variables
@@ -24,11 +22,12 @@ def water_flooding():
     No = st.number_input('Nw :', value=6.0)
     uw = st.number_input('Viscosity of Water (in cp) :', value=0.5)
     uo = st.number_input('Viscosity of Oil (in cp) :', value=17.0)
+    up = st.number_input('Viscosity of Polymer Solution (in cp) :', value=10.0)
+    di = st.number_input('Retardation Factor (Di) :', value=1.02)
     area = st.number_input('Area (in sq. feets) :', value=1.0*(10**6))
     L = st.number_input('L (in feet) :', value=100.0)
     phi = st.number_input('Porosity :', value=0.2)
     qt = st.number_input('Constant injection rate (SCFD) :', value=20000.0)
-    
     
     # Assumed Parameters
     
@@ -43,7 +42,7 @@ def water_flooding():
     kro = Krocw*(((1.0-Sw-Sorw)/(1.0-Swc-Sorw))**No)
     krw = Krwiro*(((Sw-Swc)/(1.0-Swc-Sorw))**Nw)
 
-    # Potha
+# Potha
     st.write("## Relative Permeability")
     st.write("For each saturation, relative permeability to water and oil were calculated by using Corey’s Model. The formulae forthe Corey’s Model is as follows:")
     col1, col2, col3 = st.beta_columns([1,2,1])
@@ -66,37 +65,45 @@ def water_flooding():
     fig_perm.update_layout(title={'text':"<b>Relative Permeability Curves<b>",'x':0.48,'y':0.85},legend=dict(x=0.25,y=-0.39))
     st.plotly_chart(fig_perm, use_container_width=True)
     
-
     # Mobility Ratio
     
-    M = (krw/uw)/(kro/uo)
+    M_water = (krw/uw)/(kro/uo)
+    M_polymer = (krw/up)/(kro/uo)
 
 
     # Fractional flow of water
     
-    fw = 1.0/(1.0+(1.0/M))
+    fw_water = 1.0/(1.0+(1.0/M_water))
+    fw_polymer = 1.0/(1.0+(1.0/M_polymer))
     
-    #st.write(max(fw))
-    #st.write(fw[0])
-    #st.write(fw)
-    pos = 0
-    for f in range(len(fw)):
+    pos_w = 0
+    pos_p = 0
+    for f in range(len(fw_water)):
         #st.write("fw:",fw[f])
-        if fw[f]<0.999999:
+        if fw_water[f]<0.999999:
             #st.write("fw:",fw[f],"f:",f)
-            pos = f
+            pos_w = f
             break
-            
+    for f in range(len(fw_polymer)):
+        #st.write("fw:",fw[f])
+        if fw_polymer[f]<0.999999:
+            #st.write("fw:",fw[f],"f:",f)
+            pos_p = f
+            break
+                
     #st.write(pos)
     
-    delfw_delSw = (fw-0.0)/(Sw-Swc)
+    delfw_delSw_water = (fw_water-0.0)/(Sw+di)
+    delfw_delSw_polymer = (fw_polymer-0.0)/(Sw+di)
 
-    dfw_dSw = np.insert(((np.diff(fw,n=1))/np.diff(Sw,n=1)),0,delfw_delSw[0],axis=0)
-
-    diff = abs(dfw_dSw-delfw_delSw)
+    dfw_dSw_water = np.insert(((np.diff(fw_water,n=1))/np.diff(Sw,n=1)),0,delfw_delSw_water[0],axis=0)
+    dfw_dSw_polymer = np.insert(((np.diff(fw_polymer,n=1))/np.diff(Sw,n=1)),0,delfw_delSw_polymer[0],axis=0)
+    
+    diff = abs(dfw_dSw_polymer-delfw_delSw_polymer)
+    diff_w = abs(dfw_dSw_water-delfw_delSw_water)
 
     min_index = 5 + np.argmin(diff[5:(len(Sw)-101)])
-    
+    min_index_w = 5 + np.argmin(diff_w[5:(len(Sw)-101)])
     SwBT = Sw[min_index]
     
     st.write("")
@@ -128,25 +135,22 @@ def water_flooding():
     with col3:
         st.write("") 
          
-    x_val = np.copy(sat)
+    '''x_val = np.copy(sat)
     y_val = (x_val-np.repeat(Swc,len(Sw)))*dfw_dSw[min_index]
     x_plot_val = [u for u,v in zip(x_val,y_val) if (v>=0 and u<=1 and v<=1)]
-    y_plot_val = [v for u,v in zip(x_val,y_val) if (v>=0 and u<=1 and v<=1)]
+    y_plot_val = [v for u,v in zip(x_val,y_val) if (v>=0 and u<=1 and v<=1)]'''
     
     #st.write(pd.DataFrame({"x":x_plot_val,"y":y_plot_val}))
     # Plotting the fractional flow curve
     
     fig_fw = make_subplots(specs=[[{"secondary_y": True}]])
-    fig_fw.add_trace(go.Line(x=Sw[pos:], y=fw[pos:],name="Fractional Flow Curve"),secondary_y=False,)
-    fig_fw.add_trace(go.Line(x=x_plot_val, y=y_plot_val,name="Tangent"),secondary_y=True,)
+    fig_fw.add_trace(go.Line(x=Sw[pos_w:], y=fw_water[pos_w:],name="Fractional Flow Curve of Water"),secondary_y=False,)
+    fig_fw.add_trace(go.Line(x=Sw[pos_p:], y=fw_polymer[pos_p:],name="Fractional Flow Curve of Polymer"),secondary_y=True,)
     fig_fw.update_yaxes(title_text="<b>Fractional Flow of water (fw)</b>",range=[0.0,1.0],nticks=20,secondary_y=False,)
-    fig_fw.update_yaxes(title_text="",range=[0.0,1.0],nticks=20,secondary_y=True,)
+    fig_fw.update_yaxes(title_text="<b>Fractional Flow of polymer (fp)</b>",range=[0.0,1.0],nticks=20,secondary_y=True,)
     fig_fw.update_xaxes(title_text="<b>Water Saturation (Sw)</b>",range=[0.0,1.0],nticks=20)
-    fig_fw.update_layout(title={'text':"<b>Fractional Flow Curve<b>",'x':0.48,'y':0.85},legend=dict(x=0.25,y=-0.39))
+    fig_fw.update_layout(title={'text':"<b>Fractional Flow Curves<b>",'x':0.48,'y':0.85},legend=dict(x=0.25,y=-0.39))
     st.plotly_chart(fig_fw, use_container_width=True)
-    
-    
-    
     
     st.write("## Buckley-Leverett Theory")
     st.write("Buckley- Leverett Theory is widely used for the evaluating the movement of a fluid displacing front for an immiscible displacement process in a porous media. The theory is based on the fractional flow theory and made use of the following assumptions to estimate the rate of injected fluid bank movement :-")
@@ -158,28 +162,26 @@ def water_flooding():
     st.write("Mathematically, using Buckley Leverett theory, we calculate the velocity of the constant saturation front by applying the multiphase conservation and fractional flow theory.")
     st.image("images/buckley.png")
     t_BT = (len(Sw)-min_index)
+    t_BT_w = (len(Sw)-min_index_w)
     st.write('### Breakthrough Time :',t_BT,"days")
     st.write('### Breakthrough Saturation :',SwBT)
-    
     
     # Taking input of Time
     
     st.write('\n ### Please enter the time (in days) for which waterflooding has been done.')
     time = st.slider('Time (in days)', min_value=0, max_value=100*ceil((len(Sw)-min_index)/100), value=100)
     
-    xD = (qt*time/(phi*area*L))*dfw_dSw
-    max_ind = 5 + np.argmax(xD[5:(len(Sw)-101)])
-    
-    #st.write("Max ind:",max_ind,"Sw[max_ind]:",Sw[max_ind],"xD[max_ind]",xD[max_ind])
+    xD = (qt*time/(phi*area*L))*dfw_dSw_polymer
+    xD_w = (qt*time/(phi*area*L))*dfw_dSw_water
+    #max_ind = 5 + np.argmax(xD[5:(len(Sw)-101)])
     
     # Making Adjustments for Plot
     Sw_plot = Sw
-    xD[min_index:] = (np.linspace((round(100*(xD[min_index]-0.0025))),100,num=(len(xD)-min_index)))/100.0
-    Sw_plot[min_index:] = np.repeat(Swc,(len(xD)-min_index))
-    
-    #st.write(pd.DataFrame({"xD:": xD,"Sw:":Sw}))
-    
-    #st.write(sat)
+    xD[min_index:min_index_w] = (np.linspace((round(100*(xD[min_index]-0.0025))),round(100*(xD[min_index_w]-0.0025)),num=abs(min_index_w-min_index)))/100.0
+    Sw_plot[min_index:min_index_w] = np.repeat(Sw[min_index_w],abs(min_index_w-min_index))
+    xD[min_index_w:] = (np.linspace((round(100*(xD[min_index_w]-0.0025))),100,num=(len(xD)-min_index_w)))/100.0
+    Sw_plot[min_index_w:] = np.repeat(Swc,(len(xD)-min_index_w))
+
     
     # Plotting the Saturation profile
     
@@ -222,142 +224,32 @@ def water_flooding():
     
     Wid = np.zeros(len(Sw))
     Npd = np.zeros(len(Sw))
-    Wid_BT = 1.0/dfw_dSw[min_index]
+    Wid_BT_w = 1.0/dfw_dSw_water[min_index_w]
+    Wid_BT_p = 1.0/dfw_dSw_polymer[min_index]
     
     #st.write(Wid_BT)
+    st.write("Water Breakthrough Sat :",sat[min_index_w])
+    st.write("polymer Breakthrough Sat :",sat[min_index])
+    
     for i in range(len(Sw)):
         if sat[i]<=SwBT:
-            Wid[i] = (len(Sw)-i)*Wid_BT/t_BT
-            Npd[i] = Wid[i] 
+            Wid[i] = (len(Sw)-i)*Wid_BT_p/t_BT
+            temp = ((SwBT-Swc) + Wid[i]*(1-fw_water[min_index_w]))
+            Npd[i] = min(Wid[i],temp)
         else:
-            Wid[i] = 1.0/dfw_dSw[i]
-            Npd[i] = ((Sw[i]-Swc)+(1-fw[i])*Wid[i])
-            
-    #st.write(pd.DataFrame({"Sw":sat[pos:],"Npd":Npd[pos:],"Wid":Wid[pos:]}))
+            Wid[i] = 1.0/dfw_dSw_polymer[i]
+            Npd[i] = ((sat[i]-Swc)+(1-fw_polymer[i])*Wid[i])
+    
+    #st.write(pos_p,pos_w)     
+    st.write(pd.DataFrame({"Sw":np.flipud(sat[pos_p:]),"Npd":np.flipud(Npd[pos_p:]),"Wid":np.flipud(Wid[pos_p:])}))
     fig_rec = make_subplots()
-    fig_rec.add_trace(go.Line(x=Wid[pos:], y=Npd[pos:],name="Recovery Plot"))
+    fig_rec.add_trace(go.Line(x=Wid[pos_p:], y=Npd[pos_p:],name="Recovery Plot"))
     fig_rec.update_yaxes(title_text="<b>Recovered Pore Volume</b>",range=[0.0,0.6],nticks=10)
     fig_rec.update_xaxes(title_text="<b>Injected Pore Volume</b>",range=[0.0,2.0],nticks=20)
     fig_rec.update_layout(title={'text':"<b>Recovery Plot<b>",'x':0.48,'y':0.85})
     st.plotly_chart(fig_rec, use_container_width=True)
     
-    st.write("### Injected Pore Volumes at Breakthrough :",Wid_BT)
-    '''
-    fig = plt.figure(figsize=(8,8))
-    ax = fig.add_subplot(111)
-    fig.subplots_adjust(bottom = 0.2, top = 0.75)
-
-    ax_time = fig.add_axes([0.3,0.85,0.4,0.05])
-    ax_time.spines['top'].set_visible(True)
-    ax_time.spines['right'].set_visible(True)
-
-    slider_time = Slider(ax = ax_time, label = 'Time (days)', valmin = 0, valmax = 1000, valfmt = '%f days', facecolor = '#0000cc')
-
-    # Input Variables
-
-    Swc = 0.1
-    Sorw = 0.2
-    Krwiro = 0.6
-    Krocw = 0.92
-    Nw = 2.5    
-    No = 6
-    uw = 0.5        # cp
-    uo = 17.0       # cp
-    area = 10**6    # sq. feet
-    L = 100         # feet
-    phi = 0.2      # Porosity
-    qt = 20000      # cubic feet per day (SCFD)
-    t = 100      # days
-
-    # Assumed Parameters
-    Sw = (np.linspace(100,850,num=751))/1000.0
-    #Sw = np.flipud(Sw)
-
-    # Calculations
-
-    # Relative Permeabilities
-    kro = Krocw*(((1.0-Sw-Sorw)/(1.0-Swc-Sorw))**No)
-    krw = Krwiro*(((Sw-Swc)/(1.0-Swc-Sorw))**Nw)
-
-    # Mobility Ratio
-    M = (krw/uw)/(kro/uo)
-
-    # Fractional flow of water
-    fw = 1.0/(1.0+(1.0/M))
-
-    delfw_delSw = (fw-0.0)/(Sw-Swc)
-
-    dfw_dSw = np.insert(((np.diff(fw,n=1))/np.diff(Sw,n=1)),0,delfw_delSw[0],axis=0)
-
-    diff = abs(dfw_dSw-delfw_delSw)
-
-    min_index = 101 + np.argmin(diff[101:])
-
-    print("Index :",min_index," Value :",Sw[min_index],"Difference :",diff[min_index])
-    SwBT = Sw[min_index]
-    max_ind = 0
-
-    def get_values(time):
-        xD = (qt*time/(phi*area*L))*dfw_dSw
-        #x_bt = (qt*time/(phi*area*L))*(dfw_dSw[min_index])
-        max_index = 101 + np.argmax(xD[101:])
-        xdm = 100*round(xD[max_index])
-        xD = np.append(xD, (np.linspace(xdm,100,num=100))/100.0)
-        return xD, max_index
-
-    xD, max_ind = get_values(t)
-
-    # SwBT ka jugaad
-    jugaad_Sw = np.zeros(len(Sw))
-    for i in range(len(Sw)):
-        if Sw[i]>=Sw[max_ind]:
-            jugaad_Sw[i] = Sw[i]
-        else:
-            jugaad_Sw[i] = Swc
-
-    a = 100*round(Swc)
-    b = 100*round(Sw[max_ind])
-    jugaad_Sw = np.append(jugaad_Sw,(np.linspace(a,b,num=100)/100))
-
-    print("Max Index:",max_ind,"Sat :", Sw[max_ind],"xD :",xD[max_ind])
-
-    graph, = ax.plot(xD,jugaad_Sw, linewidth=2.5)
-    ax.set_xlim([0,1])
-    ax.set_ylim([0,1])
-
-    def updates(val):
-        val = slider_time.val
-        x, ind = get_values(val)
-        graph.set_data(x,jugaad_Sw)
-        fig.canvas.draw_idle()
-        plt.show()
-        
-    slider_time.on_changed(updates)
-    plt.show()
-    '''
-
-
-'''
-xD = np.linspace(0,100,num = 20)
-xD = xD/100.0
-Sw = xD*time/1000.0
-'''
-'''
-def get_Sw(xD, time):
-    Sw = xD*time/1000.0
-    return Sw
-
-Sw = get_Sw(xD, 100)
-graph, = ax.plot(xD, Sw, linewidth=2.5)
-ax.set_xlim([0,1])
-ax.set_ylim([0,1])
-
-def updates(val):
-    val = slider_time.val
-    graph.set_data(xD, get_Sw(xD, val))
-    fig.canvas.draw_idle()
-    plt.show()
+    st.write("### Injected Pore Volumes at Breakthrough :",Wid_BT_p)
     
-slider_time.on_changed(updates)
-plt.show()
-'''
+    
+    
