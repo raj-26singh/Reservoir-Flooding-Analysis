@@ -96,14 +96,14 @@ def polymer():
     delfw_delSw_water = (fw_water-0.0)/(Sw+di)
     delfw_delSw_polymer = (fw_polymer-0.0)/(Sw+di)
 
-    dfw_dSw_water = np.insert(((np.diff(fw_water,n=1))/np.diff(Sw,n=1)),0,delfw_delSw_water[0],axis=0)
+    dfw_dSw_water = np.insert(((np.diff(fw_water,n=1))/np.diff(Sw,n=1)),0,delfw_delSw_water[0],axis=0)            #no need
     dfw_dSw_polymer = np.insert(((np.diff(fw_polymer,n=1))/np.diff(Sw,n=1)),0,delfw_delSw_polymer[0],axis=0)
     
-    diff = abs(dfw_dSw_polymer-delfw_delSw_polymer)
-    diff_w = abs(dfw_dSw_water-delfw_delSw_water)
+    diff = abs(dfw_dSw_polymer-delfw_delSw_polymer)           
+    diff_w = abs(dfw_dSw_water-delfw_delSw_water)            #no need
 
-    min_index = 5 + np.argmin(diff[5:(len(Sw)-101)])
-    min_index_w = 5 + np.argmin(diff_w[5:(len(Sw)-101)])
+    min_index = 5 + np.argmin(diff[5:(len(Sw)-5)])
+    min_index_w = 5 + np.argmin(diff_w[5:(len(Sw)-5)])          #no need
     SwBT = Sw[min_index]
     
     st.write("")
