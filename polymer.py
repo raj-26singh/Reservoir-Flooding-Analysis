@@ -162,7 +162,7 @@ def polymer():
     st.write("Mathematically, using Buckley Leverett theory, we calculate the velocity of the constant saturation front by applying the multiphase conservation and fractional flow theory.")
     st.image("images/buckley.png")
     t_BT = (len(Sw)-min_index)
-    t_BT_w = (len(Sw)-min_index_w)
+    t_BT_w = (len(Sw)-min_index_w)          #no need
     st.write('### Breakthrough Time :',t_BT,"days")
     st.write('### Breakthrough Saturation :',SwBT)
     
@@ -172,8 +172,8 @@ def polymer():
     time = st.slider('Time (in days)', min_value=0, max_value=100*ceil((len(Sw)-min_index)/100), value=100)
     
     xD = (qt*time/(phi*area*L))*dfw_dSw_polymer
-    xD_w = (qt*time/(phi*area*L))*dfw_dSw_water
-    #max_ind = 5 + np.argmax(xD[5:(len(Sw)-101)])
+    xD_w = (qt*time/(phi*area*L))*dfw_dSw_water             #no need
+    #max_ind = 5 + np.argmax(xD[5:(len(Sw)-5)])
     
     # Making Adjustments for Plot
     Sw_plot = Sw
@@ -230,6 +230,26 @@ def polymer():
     #st.write(Wid_BT)
     st.write("Water Breakthrough Sat :",sat[min_index_w])
     st.write("polymer Breakthrough Sat :",sat[min_index])
+    
+   ''' 
+    vel_BT = 1.0/Wid_BT_p
+    temp = np.zeros(len(Sw))
+    Sw_bank = 
+    fw_bank = 
+    for i in range(len(Sw)):
+        if sat[i]<=SwBT:
+            Wid[i] = (len(Sw)-i)*Wid_BT_p/t_BT
+            temp = ((Sw_bank-Swc) +Wid[i]*(1-fw_bank))
+        else:
+            Wid[i] = 1.0/dfw_dSw_polymer[i]
+    for i in range(len(Sw)):
+        if sat[i]<=SwBT:
+            Npd[i] = min(Wid[i],temp)
+        else:
+            Npd[i] = ((sat[i]-Swc)+(1-fw_polymer[i])*Wid[i])
+            
+   '''
+    
     
     for i in range(len(Sw)):
         if sat[i]<=SwBT:
